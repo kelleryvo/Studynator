@@ -1,0 +1,73 @@
+<html>
+<% include partials/head.ejs %>
+<body>
+    <% include partials/navigation.ejs %>
+    <div class='container'>
+      <h1>Remote</h1>
+
+      <button id="btnPlay" class="btn btn-lg btn-default" type="button">
+        <img src="assets/img/play.png" width="50px" class="img-responsive" />
+      </button>
+
+      <button id="btnPause" class="btn btn-lg btn-default" type="button">
+        <img src="assets/img/pause.png" width="50px" class="img-responsive" />
+      </button>
+
+      <br>
+      <br>
+
+      <button id="btn10Backward" class="btn btn-lg btn-default" type="button">
+        <img src="assets/img/backward.png" width="50px" class="img-responsive" />
+      </button>
+
+      <button id="btn10Forward" class="btn btn-lg btn-default" type="button">
+         <img src="assets/img/forward.png" width="50px" class="img-responsive" />
+      </button>
+
+      <h3>Connected Devices</h3>
+      <%- conn %>
+
+    </div>
+    <script>
+      console.log('IN');
+
+      $(function(){
+        var socket = io.connect();
+
+        //video
+        var $vid = $('#myVideo');
+
+        //Buttons
+        var $pause = $('#btnPause');
+        var $play = $('#btnPlay');
+        var $10forward = $('#btn10Forward');
+        var $10backward = $('#btn10Backward');
+
+        //Play
+        $play.click(function(e){
+          console.log('Remote Play button clicked!');
+          socket.emit('play videos', 0);
+        });
+
+        //Pause
+        $pause.click(function(e){
+          console.log('Remote Pause button clicked!');
+          socket.emit('pause videos', {room_name: '<%= session.username %>'});
+        });
+
+        //10 Forward
+        $10forward.click(function(e){
+          console.log('Remote Forward 10 button clicked!');
+          socket.emit('forward 10', 0);
+        });
+
+        //10 Backward
+        $10backward.click(function(e){
+          console.log('Remote Backward 10 button clicked!');
+          socket.emit('backward 10', 0);
+        });
+
+      });
+    </script>
+  </body>
+</html>

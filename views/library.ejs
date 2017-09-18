@@ -1,0 +1,20 @@
+<html>
+<% include partials/head.ejs %>
+<body>
+    <% include partials/navigation.ejs %>
+    <div class='container'>
+      <h1>Library.</h1>
+
+      <% if(recent && recent !== 'undefined' && recent !== null){ %>
+      <h2>Recently Watched</h2>
+      <%- recent %>
+      <% } %>
+
+      <br>
+      <%- series %>
+      <br>
+    </div>
+    <script>
+    </script>
+  </body>
+</html>

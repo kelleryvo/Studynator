@@ -1,0 +1,20 @@
+{
+  "name": "studynator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.18.1",
+    "cookie-parser": "^1.4.3",
+    "ejs": "*",
+    "express-session": "^1.15.5",
+    "mysql": "*",
+    "nodemon": "*",
+    "socket.io": "*"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yvo k., dennis s.",
+  "license": "ISC"
+}
