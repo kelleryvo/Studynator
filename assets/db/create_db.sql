@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS stream_dream;
-USE stream_dream;
+CREATE DATABASE IF NOT EXISTS studynator;
+USE studynator;
 
 CREATE TABLE tbl_user(
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -29,7 +29,7 @@ CREATE TABLE tbl_watchlist(
     fk_user INT UNSIGNED,
     plays_count VARCHAR(30) NOT NULL,
     watch_time VARCHAR(255) NOT NULL,
-    
+
     FOREIGN KEY (fk_episode) REFERENCES tbl_episode(id),
     FOREIGN KEY (fk_user) REFERENCES tbl_user(id)
 );
@@ -41,7 +41,7 @@ CREATE TABLE tbl_season(
     description VARCHAR(255) NOT NULL,
     thumbnail VARCHAR(255) NOT NULL,
     production_year INT(4) NOT NULL,
-    
+
     FOREIGN KEY (fk_series) REFERENCES tbl_series(id)
 );
 
@@ -50,7 +50,7 @@ CREATE TABLE tbl_season_episode(
     fk_episode INT UNSIGNED NOT NULL,
     fk_season INT UNSIGNED NOT NULL,
     number INT NOT NULL,
-    
+
     FOREIGN KEY (fk_episode) REFERENCES tbl_episode(id),
     FOREIGN KEY (fk_season) REFERENCES tbl_season(id)
 );
