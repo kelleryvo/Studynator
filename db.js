@@ -21,7 +21,7 @@ con.connect(function(err) {
   console.log('Connected!');
 });
 
-con.query('USE stream_dream;', function (err, result) {
+con.query('USE studynator;', function (err, result) {
     if (err) throw err;
     console.log('Using database');
 });
