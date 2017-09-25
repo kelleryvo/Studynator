@@ -32,7 +32,7 @@ CREATE TABLE tbl_user_permission(
 CREATE TABLE tbl_class(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
-    fk_school INTEGER NOT NULL
+    fk_school INTEGER NOT NULL,
 
     FOREIGN KEY (fk_school) REFERENCES tbl_school(id)
 );
