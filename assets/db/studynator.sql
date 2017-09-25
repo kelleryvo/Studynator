@@ -96,7 +96,7 @@ CREATE TABLE tbl_priority(
     FOREIGN KEY (fk_exam) REFERENCES tbl_exams(id)
 );
 
-CREATE TABLE tbl_priority(
+CREATE TABLE tbl_progress(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     fk_priority INTEGER NOT NULL,
     effort INTEGER NOT NULL,
