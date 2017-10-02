@@ -1,0 +1,56 @@
+body{
+  margin: 0;
+}
+
+header, main, footer{
+  border: solid;
+  width: 100%;
+}
+
+header{
+  height: 80px;
+}
+
+header{
+  background: rgb(250,250,250);
+  padding-left: 30px;
+}
+
+
+.head{
+  float: left;
+  margin-left: 10px;
+  max-height: 80px;
+}
+
+main{
+  padding-top: 50px;
+  padding-bottom: 50px;
+  text-align: center;
+}
+
+#logo-login{
+  max-height: 300px;
+}
+
+#loginbox{
+  border: solid;
+  width: 500px;
+  margin-left: calc(50% - 250px);
+}
+
+#login-form{
+  text-align: center;
+}
+
+.login-input{
+  width: 300px;
+  height: 30px;
+  margin-bottom: 5px;
+}
+
+footer{
+  text-align: center;
+  padding-top:10px;
+  padding-bottom: 10px;
+}
