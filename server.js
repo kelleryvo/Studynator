@@ -32,20 +32,31 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
 var calendar = require('node-calendar');
 
 function generateUICalendar(givenYear, givenMonth){
-  var html = '<table> <th> <tr> <th colspan="7"> <span class="btn-group"> <a class="btn"><i class="icon-chevron-left"></i></a> <a class="btn active">'+ givenMonth +' ' + givenYear +'</a> <a class="btn"><i class="icon-chevron-right"></i></a> </span> </th> </tr> <tr> <th>Mo</th> <th>Tu</th> <th>We</th> <th>Th</th> <th>Fr</th> <th>Sa</th> <th>Su</th> </tr> </th>'
+  var html = '<table> <th> <tr> <th colspan="7"> <span> <a href="/10" class="btn">Previous</a> <a class="btn active">'+ givenYear +' / ' + givenMonth +'</a> <a class="btn">Next</a> </span> </th> </tr> <tr> <th>Mo</th> <th>Tu</th> <th>We</th> <th>Th</th> <th>Fr</th> <th>Sa</th> <th>Su</th> </tr> </th>'
+
   month = new calendar.Calendar(0).monthdayscalendar(givenYear, givenMonth)
 
   html += '<td>'
 
+  var countDays = 0
   month.forEach(function(week){
     html += '<tr>'
     week.forEach(function(day){
+      countDays++;
       if(!(day == 0)){
-        html += '<td>' + day + '</td> '
+        if(countDays == 6 || countDays == 7){
+          //Weekend
+          html += '<td class="muted">' + day + '</td> '
+        } else {
+          //Work Day
+          html += '<td class="clickable">' + day + '</td> '
+        }
+
       } else {
         html += '<td></td> '
       }
     });
+    countDays = 0
     html += '</tr>'
   });
 

@@ -1,20 +1,37 @@
 table, th, td {
-   border: 1px solid white;
+   border: none;
 }
 
 table {
     width: 100%;
 }
 
-th, td{
-    height: 50px;
-    text-align: center;
+th{
+  height: 50px;
+
+  text-align: center;
+  vertical-align: top;
+}
+
+td{
+  height: 100px;
+
+  text-align: right;
+  vertical-align: top;
+
+  border-bottom: 1px solid #ddd;
+
+  padding: 20px;
+}
+
+td:hover {
+  background-color: #50545b
 }
 
 .muted {
-
+  color: #e0b28f;
 }
 
 .normal {
-
+  background-color: #2e69c9;
 }
