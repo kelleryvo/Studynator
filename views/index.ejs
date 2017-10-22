@@ -4,9 +4,9 @@
     <% include partials/navigation.ejs %>
     <div class='container'>
       <div class="jumbotron">
-        <h1>StreamDream</h1>
-        <p>Your source for online video streaming.</p>
-        <p><a href="/library" class="btn btn-primary btn-lg">To the Library</a></p>
+        <h1>Studynator</h1>
+        <p>Your tool to boost learning results.</p>
+        <p><a href="/library" class="btn btn-primary btn-lg">Sign Up</a></p>
       </div>
 
       <h4>You are logged in as <%= session.username %>.</h4>
@@ -48,16 +48,6 @@
             socket.on('new message', function(data){
                 $chat.append('<div class="well"><b>' + data.username + '</b>: ' + data.msg + '</div>');
             });
-
-            /*function submitMessage(e){
-              if (e.keyCode == 13) {
-                e.preventDefault();
-                var msg = $message.val();
-                socket.emit('send message', {username: '<%= session.username %>', msg: msg});
-                $message.val('');
-              }
-            }*/
-
         });
 
     </script>

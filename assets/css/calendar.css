@@ -1,0 +1,20 @@
+table, th, td {
+   border: 1px solid white;
+}
+
+table {
+    width: 100%;
+}
+
+th, td{
+    height: 50px;
+    text-align: center;
+}
+
+.muted {
+
+}
+
+.normal {
+
+}

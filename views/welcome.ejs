@@ -1,0 +1,22 @@
+<html>
+  <% include partials/head.ejs %>
+  <body>
+
+    <div class='container'>
+      <div class="jumbotron">
+        <br>
+        <img src="assets/img/logo.png" class="logo" width="250px">
+        <h1>Studynator</h1>
+        <p>Your tool to boost learning results.</p>
+        <p><a href="/whatisthis" class="btn btn-primary btn-lg">Read more...</a></p>
+      </div>
+
+      <button type="button" id="signin" onclick="window.location='/signin';" class="btn btn-sm btn-primary btn-block">Sign up</button>
+      <button type="button" id="signup" onclick="window.location='/signup';" class="btn btn-sm btn-default btn-block">Sign up</button>
+
+
+      <%- table %>
+    </div>
+
+  </body>
+</html>

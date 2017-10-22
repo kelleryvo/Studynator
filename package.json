@@ -9,6 +9,7 @@
     "ejs": "*",
     "express-session": "^1.15.5",
     "mysql": "*",
+    "node-calendar": "^0.1.4",
     "nodemon": "*",
     "socket.io": "*"
   },

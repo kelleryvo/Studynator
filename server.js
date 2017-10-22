@@ -14,6 +14,8 @@ var querystring = require('querystring');
 var session = require('express-session');
 var bodyParser = require('body-parser')
 
+var frdmCalendar = require('./frdmCalendar')
+
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 /*app.use(session({
@@ -27,20 +29,42 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
   secret: '1234567890QWERT'
 }));*/
 
+var calendar = require('node-calendar');
+
+function generateUICalendar(givenYear, givenMonth){
+  var html = '<table> <th> <tr> <th colspan="7"> <span class="btn-group"> <a class="btn"><i class="icon-chevron-left"></i></a> <a class="btn active">'+ givenMonth +' ' + givenYear +'</a> <a class="btn"><i class="icon-chevron-right"></i></a> </span> </th> </tr> <tr> <th>Mo</th> <th>Tu</th> <th>We</th> <th>Th</th> <th>Fr</th> <th>Sa</th> <th>Su</th> </tr> </th>'
+  month = new calendar.Calendar(0).monthdayscalendar(givenYear, givenMonth)
+
+  html += '<td>'
+
+  month.forEach(function(week){
+    html += '<tr>'
+    week.forEach(function(day){
+      if(!(day == 0)){
+        html += '<td>' + day + '</td> '
+      } else {
+        html += '<td></td> '
+      }
+    });
+    html += '</tr>'
+  });
+
+  html += '</td> </table>'
+
+  return html
+}
+
+//Validate Functions
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    return re.test(email)
+}
+
 //Session Function
 app.use(session({
   secret: 'keyboard cat',
   cookie: { maxAge: 60000 }
 }));
-
-//Function to Check if User is logged in
-function isLoggedIn(req, res, next) {
-  if (req.session.authenticated === true) {
-      next();
-  } else {
-      res.redirect('/login');
-  }
-}
 
 //DB Connection
 var db = require('./db');
@@ -50,10 +74,169 @@ var con = db.con;
 app.use('/assets', express.static('assets'));
 app.use('/data', express.static('data'));
 
+//Function to Check if User is logged in
+function isLoggedIn(req, res, next) {
+  if (req.session.authenticated === true) {
+      next();
+  } else {
+      res.redirect('/');
+  }
+}
+
 //Manage Routes
-app.get('/', isLoggedIn, function(req, res){
-  var sess = req.session;
-  res.render('index', {session: sess});
+app.get('/', function(req, res){
+  html = generateUICalendar();
+
+  res.render('welcome', {table: html});
+});
+
+app.get('/calendar/:year/:month', function(req, res){
+  var year = querystring.escape(req.params.year);
+  var month = querystring.escape(req.params.month);
+
+  html = ''
+
+  if(year !== 'undefined' && year !== null && month !== 'undefined' && month !== null){
+    //Check Length
+    if(year.length == 4 && (month.length == 2 || month.length == 1)){
+      //Check for Number
+      if(isNaN(year) == false && isNaN(month) == false){
+        //Check Range
+        if(month >= 1 && month <= 12){
+          console.log('date input ok (' + year + ' / ' + month + ')')
+
+          html = generateUICalendar(year, month);
+        }
+      }
+    }
+  }
+
+  //If dates were invalid
+  var d = new Date()
+  //Date.prototype.setDate()
+  //console.log(d.getYear() + ' ' + Date.prototype.getMonth())
+
+  if(html == ''){
+    html = generateUICalendar(d.getYear(), d.getMonth());
+  }
+
+  res.render('calendar', {table: html});
+});
+
+app.get('/signup', function(req, res){
+  res.render('signup', {errors: ''});
+});
+
+app.post('/signup', urlencodedParser, function(req, res){
+  var msg = '';
+  var state = true;
+  var password, username;
+
+  if(req.body.username && req.body.password){
+    //VARS
+    username = querystring.escape(req.body.username);
+    email = querystring.escape(req.body.username);
+    password = querystring.escape(req.body.password);
+    var password_repeat = querystring.escape(req.body.password_repeat);
+
+    //Username Check
+    if(username.length >= 5){
+    } else {
+      msg += "- The username needs to be at least 5 characters long!"
+      state = false;
+    }
+
+    //E-Mail Check
+    if(validateEmail(email)){
+      msg += "- The e-mail address has an invalid format!"
+      sate = false
+    }
+
+    //Password Check
+    if(password_repeat == password){
+    } else {
+      msg += "- The passwords don't match!"
+      state = false;
+    }
+  } else {
+    msg += "- Some fields are empty!"
+    state = false;
+  }
+
+  if(state == true){
+    //Try to Register User
+    var sql_query = 'INSERT INTO tbl_user(username, email, password) VALUES("' + username + '","' + email + '","' + password + '")';
+    db.executeRead(sql_query, function(val){
+      console.log(val);
+      msg += 'Successfully registered! You can now log in.';
+      var feedback = '<p class="label label-success error">' + msg + '<p>';
+    });
+  } else {
+    var feedback = '<p class="label label-danger error">' + msg + '<p>';
+  }
+
+  if(msg = ''){
+    feedback = '';
+  }
+
+  res.render('signup', {errors: feedback});
+});
+
+app.get('/signin', function(req, res){
+  res.render('signin', {errors: ''});
+});
+
+app.post('/signin', urlencodedParser, function(req, res){
+  var sess = req.session
+  sess.authenticated = false;
+
+  if(req.body.username && req.body.password){
+    //VARS
+    var username = querystring.escape(req.body.username);
+    var password = querystring.escape(req.body.password);
+
+    console.log('SQL INJ: ' + username);
+
+    var sql_query = 'SELECT * FROM tbl_user WHERE username = "' + username + '"';
+    db.executeRead(sql_query, function(val){
+
+      if(val.length === 0){
+        //No Result
+        console.log('Account doenst exist.');
+        res.render('signin', {errors: '<p class="label label-danger error">This account doesnt exist!</p>'});
+      } else {
+        //Account found
+        if(val[0].password === password){
+          sess.authenticated = true;
+
+          sess.username = val[0].username;
+          sess.userid = val[0].id;
+
+          //Create Cookie for later Access
+          res.cookie('user', sess.username, { maxAge: 900000, httpOnly: true }); //create cookie
+
+          console.log('User signed in.' + sess.authenticated);
+          res.redirect('/');
+        } else {
+          res.render('signin', {errors: '<p class="label label-danger error">Wrong password!</p>'});
+        }
+      }
+    });
+  } else {
+    //Not all Parameters Given / False
+    res.render('signin', {errors: '<p class="label label-danger error">Invalid login credentials!</p>'});
+  }
+});
+
+app.get('/logout', function(req, res){
+  var sess = req.session
+
+  sess.authenticated = false;
+  sess.username = null;
+  sess.userid = null;
+
+  console.log('After Logout: ' + req.session.authenticated);
+  res.redirect('/login');
 });
 
 app.get('/remote', isLoggedIn, function(req, res){
@@ -77,133 +260,6 @@ app.get('/remote', isLoggedIn, function(req, res){
   } else {
     res.render('remote', {conn: 'No Clients Connected.', session: sess});
   }
-});
-
-//### Encryption
-/*
-var bcrypt = require('bcrypt');
-
-function encryptPassword(){
-  bcrypt.genSalt(10, function(err, salt) {
-    //Error
-    if (err)
-    return callback(err);
-    //Hash
-    bcrypt.hash(password, salt, function(err, hash) {
-      return callback(err, hash);
-    });
-  });
-}
-*/
-//###
-
-app.get('/register', function(req, res){
-  res.render('register', {errors: ''});
-});
-
-app.post('/register', urlencodedParser, function(req, res){
-  var msg = '';
-  var state = true;
-  var password, username;
-
-  if(req.body.username && req.body.password){
-    //VARS
-    username = querystring.escape(req.body.username);
-    password = querystring.escape(req.body.password);
-    var password_repeat = querystring.escape(req.body.password_repeat);
-
-    //Username Check
-    if(username.length >= 5){
-    } else {
-      msg += "- The username needs to be at least 5 characters long!"
-      state = false;
-    }
-
-    //Password Check
-    if(password_repeat == password){
-    } else {
-      msg += "- The passwords don't match!"
-      state = false;
-    }
-  } else {
-    msg += "- Some fields are empty!"
-    state = false;
-  }
-
-  if(state == true){
-    //Try to Register User
-    var sql_query = 'INSERT INTO tbl_user(username, password) VALUES("' + username + '","' + password + '")';
-    db.executeRead(sql_query, function(val){
-      console.log(val);
-      msg += 'Successfully registered! You can now log in.';
-      var feedback = '<p class="label label-success error">' + msg + '<p>';
-    });
-  } else {
-    var feedback = '<p class="label label-danger error">' + msg + '<p>';
-  }
-
-  if(msg = ''){
-    feedback = '';
-  }
-
-  res.render('register', {errors: feedback});
-});
-
-app.get('/login', function(req, res){
-  res.render('login', {errors: ''});
-});
-
-app.post('/login', urlencodedParser, function(req, res){
-  var sess = req.session
-  sess.authenticated = false;
-
-  if(req.body.username && req.body.password){
-    //VARS
-    var username = querystring.escape(req.body.username);
-    var password = querystring.escape(req.body.password);
-
-    console.log('SQL INJ: ' + username);
-
-    var sql_query = 'SELECT * FROM tbl_user WHERE username = "' + username + '"';
-    db.executeRead(sql_query, function(val){
-
-      if(val.length === 0){
-        //No Result
-        console.log('Account doenst exist.');
-        res.render('login', {errors: '<p class="label label-danger error">This account doesnt exist!</p>'});
-      } else {
-        //Account found
-        if(val[0].password === password){
-          sess.authenticated = true;
-
-          sess.username = val[0].username;
-          sess.userid = val[0].id;
-
-          //Create Cookie for later Access
-          res.cookie('user', sess.username, { maxAge: 900000, httpOnly: true }); //create cookie
-
-          console.log('User signed in.' + sess.authenticated);
-          res.redirect('/');
-        } else {
-          res.render('login', {errors: '<p class="label label-danger error">Wrong password!</p>'});
-        }
-      }
-    });
-  } else {
-    //Not all Parameters Given / False
-    res.render('login', {errors: '<p class="label label-danger error">Invalid login credentials!</p>'});
-  }
-});
-
-app.get('/logout', function(req, res){
-  var sess = req.session
-
-  sess.authenticated = false;
-  sess.username = null;
-  sess.userid = null;
-
-  console.log('After Logout: ' + req.session.authenticated);
-  res.redirect('/login');
 });
 
 app.get('/library', isLoggedIn, function(req, res){
