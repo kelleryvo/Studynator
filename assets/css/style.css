@@ -58,3 +58,13 @@ footer{
 .logo{
   float: right;
 }
+
+.calendar-buttons{
+  border: solid;
+  font-size: 20pt;
+  height: 100px;
+}
+
+#calendar{
+  border: solid;
+}
