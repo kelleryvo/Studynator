@@ -1,0 +1,75 @@
+<html>
+<% include partials/head.ejs %>
+
+  <body>
+    <% include partials/navigation.ejs %>
+
+
+      <div class='container'>
+        <div class="jumbotron">
+          <br>
+          <img src="assets/img/logo.png" class="logo" width="100px">
+          <h1>Studynator</h1>
+        </div>
+
+        <div class="calendar-buttons">
+          <button type="button" class="btn btn-primary">Add Homework</button>
+          <button type="button" class="btn btn-primary">Add Exams</button>
+        </div>
+
+        <br>
+
+        <div id="calendar">
+          <%- calendar_tbl %>
+        </div>
+
+        <br>
+
+        <div>
+          <table class="table-striped table-bordered">
+            <tr>
+              <th>Task</th>
+              <th>Date</th>
+              <th>Delete</th>
+              <th>Edit</th>
+            </tr>
+
+            <tr>
+              <td>Aufgabe 1</td>
+              <td>2017-23-10</td>
+              <td>
+                <img src="assets/img/x-button.png" style="width: 25px;"></img>
+              </td>
+              <td>
+                <img src="assets/img/edit.png" style="width: 25px;">
+                </img>
+              </td>
+            </tr>
+            <tr>
+              <td>Aufgabe 2</td>
+              <td>2017-23-10</td>
+              <td>
+                <img src="assets/img/x-button.png" style="width: 25px;">
+                </img>
+              </td>
+              <td>
+                <img src="assets/img/edit.png" style="width: 25px;"></img>
+              </td>
+            </tr>
+            <tr>
+              <td>Aufgabe 3</td>
+              <td>2017-23-10</td>
+              <td>
+                <img src="assets/img/x-button.png" style="width: 25px;"></img>
+              </td>
+              <td>
+                <img src="assets/img/edit.png" style="width: 25px;"></img>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+  </body>
+
+</html>
