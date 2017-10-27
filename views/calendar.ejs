@@ -1,16 +1,18 @@
 <html>
   <% include partials/head.ejs %>
   <body>
+    <% include partials/navigation.ejs %>
 
-    <div class='container'>
-      <div class="jumbotron">
-        <br>
-        <img src="/assets/img/logo.png" class="logo" width="250px">
-      </div>
 
-      <i class="icon-chevron-right"></i>
+      <div class='container'>
+        <div class="jumbotron">
+          <br>
+          <img src="assets/img/logo.png" class="logo" width="100px">
+          <h1>Studynator</h1>
+        </div>
 
-      <%- table %>
+
+      <%- calendar_tbl %>
 
       <br>
     </div>

@@ -10,18 +10,19 @@
           <br>
           <img src="assets/img/logo.png" class="logo" width="100px">
           <h1>Studynator</h1>
+          Welcome, <b><%- session.username %></b>
         </div>
 
+        <h3>Overview</h3>
+
         <div class="calendar-buttons">
-          <button type="button" class="btn btn-primary">Add Homework</button>
-          <button type="button" class="btn btn-primary">Add Exams</button>
+          <button type="button" class="btn btn-primary" onclick="location.href = '/addhomework';">Add Homework</button>
+          <button type="button" class="btn btn-primary" onclick="location.href = '/addexam';">Add Exams</button>
         </div>
 
         <br>
 
-        <div id="calendar">
-          <%- calendar_tbl %>
-        </div>
+        <h3>Upcoming Tasks</h3>
 
         <br>
 
@@ -68,6 +69,12 @@
             </tr>
           </table>
         </div>
+
+        <div id="calendar">
+          <%- content %>
+        </div>
+
+        <br>
       </div>
 
   </body>

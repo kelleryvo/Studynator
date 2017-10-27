@@ -30,11 +30,11 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
 var calendar = require('node-calendar');
 
 function generateUICalendar(givenYear, givenMonth){
-  var link_previous = '/calendar/' + givenYear + '/' + parseInt(givenMonth) - 1
-  var link_next = '/calendar/' + givenYear + '/' + parseInt(givenMonth) + 1
+  var previousMonth = parseInt(givenMonth) - 1
+  var link_previous = '/calendar/' + givenYear + '/' + previousMonth
 
-  console.log(link_previous)
-  console.log(link_next)
+  var nextMonth = parseInt(givenMonth) + 1
+  var link_next = '/calendar/' + givenYear + '/' + nextMonth
 
   var html = '<table> <th> <tr> <th colspan="7"> <span> <a href="' + link_previous + '" class="btn">Previous</a> <a class="btn active">'+ givenYear +' / ' + givenMonth +'</a> <a href="' + link_next + '" class="btn">Next</a> </span> </th> </tr> <tr> <th>Mo</th> <th>Tu</th> <th>We</th> <th>Th</th> <th>Fr</th> <th>Sa</th> <th>Su</th> </tr> </th>'
   month = new calendar.Calendar(0).monthdayscalendar(givenYear, givenMonth)
@@ -97,36 +97,65 @@ function isLoggedIn(req, res, next) {
 }
 
 //Manage Routes
-app.get('/', function(req, res){
-  res.redirect('portal');
+app.get('/', isLoggedIn, function(req, res){
+
+  var html = generateUICalendar(2017, 10)
+  var sess = req.session
+
+  var sql_query = 'SELECT * FROM tbl_homework ho inner join tbl_subject su on ho.fk_subject = su.id inner join tbl_class_subject cl_su on su.id = cl_su.fk_subject inner join tbl_class cl on cl_su.fk_class = cl.id order by ho.due_date';
+  db.executeRead(sql_query, function(val){
+
+    if (val !== 'undefined' && val !== null){
+      var content = '<table class="">';
+      content += '<tr><th></th></tr>';
+
+      console.log(val.length);
+
+      for(var i = 0; i < val.length; i++) {
+        content += '<tr><td>';
+
+        content += '<h2>' + val[i].name + '</h2>';
+        content += '<h4>' + val[i].description + '</h4>';
+
+        content += '</td></tr>';
+      }
+      content += '</table>';
+
+      res.render('portal', {calendar_tbl: html, session: sess, content: content});
+    }
+  });
+
+  //res.render('portal', {calendar_tbl: html, session: sess});
 });
 
-app.get('/portal', function(req, res){
-  var d = new Date();
-
-  var html = generateUICalendar(2017, 10);
-
-  res.render('portal', {calendar_tbl: html});
-});
-
-app.get('/addhomework', function(req, res){
+app.get('/addhomework', isLoggedIn, function(req, res){
   res.render('addhomework');
 });
 
-app.get('/addexam', function(req, res){
+app.get('/addexam', isLoggedIn, function(req, res){
   res.render('addexam');
 });
 
-app.get('/calendar', function(req, res){
-  var d = new Date()
-  //Date.prototype.setDate()
-  //console.log(d.getYear() + ' ' + Date.prototype.getMonth())
+app.get('/calendar', isLoggedIn, function(req, res){
+  var today = new Date();
+  var dd = today.getDate();
+  var mm = today.getMonth()+1; //January is 0!
+  var yyyy = today.getFullYear();
 
-  if(html == ''){
-    html = generateUICalendar(d.getYear(), d.getMonth());
+  if(dd<10) {
+      dd = '0'+dd
   }
 
-  res.render('calendar', {table: html});
+  if(mm<10) {
+      mm = '0'+mm
+  }
+
+  today = mm + '/' + dd + '/' + yyyy;
+  console.log(today);
+
+  var html = generateUICalendar(yyyy, mm);
+
+  res.render('calendar', {calendar_tbl: html});
 });
 
 app.get('/calendar/:year/:month', isLoggedIn, function(req, res){
@@ -151,15 +180,12 @@ app.get('/calendar/:year/:month', isLoggedIn, function(req, res){
   }
 
   //If dates were invalid
-  var d = new Date()
-  //Date.prototype.setDate()
-  //console.log(d.getYear() + ' ' + Date.prototype.getMonth())
-
+  var today = new Date()
   if(html == ''){
-    html = generateUICalendar(d.getYear(), d.getMonth());
+    html = generateUICalendar(d.getFullYear(), d.getMonth());
   }
 
-  res.render('calendar', {table: html});
+  res.render('calendar', {calendar_tbl: html});
 });
 
 app.get('/signin', function(req, res){
@@ -275,7 +301,7 @@ app.get('/logout', function(req, res){
   sess.userid = null;
 
   console.log('After Logout: ' + req.session.authenticated);
-  res.redirect('/login');
+  res.redirect('/');
 });
 
 //The 404 Route
@@ -293,7 +319,7 @@ users = [];
 var connections
 connections = [];
 
-server.listen(process.env.PORT || 8888);
+server.listen(process.env.PORT || 8889);
 console.log('Server started. Listening on Port 8888')
 
 //Web Sockets
