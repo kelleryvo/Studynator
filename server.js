@@ -102,26 +102,62 @@ app.get('/', isLoggedIn, function(req, res){
   var html = generateUICalendar(2017, 10)
   var sess = req.session
 
-  var sql_query = 'SELECT * FROM tbl_homework ho inner join tbl_subject su on ho.fk_subject = su.id inner join tbl_class_subject cl_su on su.id = cl_su.fk_subject inner join tbl_class cl on cl_su.fk_class = cl.id order by ho.due_date';
+  var sql_query = 'select sc.name school_name, cl.name class_name, su.name subject_name, ho.name homework_name, ho.description homework_description, ho.due_date homework_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_homework ho on ho.fk_subject = su.id where us.id = ' + sess.userid + ' order by ho.due_date ';
+
   db.executeRead(sql_query, function(val){
 
     if (val !== 'undefined' && val !== null){
-      var content = '<table class="">';
-      content += '<tr><th></th></tr>';
+      var content_homework = '<table class="table-striped table-bordered">';
+      content_homework += '<tr><th>School</th><th>Subject</th><th>Task</th><th>Date</th><th>Delete</th><th>Edit</th></tr>';
 
       console.log(val.length);
 
       for(var i = 0; i < val.length; i++) {
-        content += '<tr><td>';
+        content_homework += '<tr>';
 
-        content += '<h2>' + val[i].name + '</h2>';
-        content += '<h4>' + val[i].description + '</h4>';
+        content_homework += '<td><b>' + val[i].class_name + '</b><br>' + val[i].school_name + '</td>'
+        content_homework += '<td>' + val[i].subject_name + '</td>'
+        content_homework += '<td><b>' + val[i].homework_name + '</b><br>' + val[i].homework_description + '</td>'
+        content_homework += '<td>' + val[i].homework_due_date + '</td>';
+        content_homework += '<h4>' + val[i].description + '</h4>';
 
-        content += '</td></tr>';
+        content_homework += '<td><img src="assets/img/x-button.png" style="width: 25px;"></img></td>'
+        content_homework += '<td><img src="assets/img/edit.png" style="width: 25px;"></img></td>'
+
+        content_homework += '</tr>';
       }
-      content += '</table>';
+      content_homework += '</table>';
 
-      res.render('portal', {calendar_tbl: html, session: sess, content: content});
+      //part 2
+      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.name exam_name, ex.description exam_description, ex.due_date exam_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id where us.id = '+ sess.userid + ' order by ex.due_date';
+
+      db.executeRead(sql_query2, function(val){
+
+        if (val !== 'undefined' && val !== null){
+          var content_exam = '<table class="table-striped table-bordered">';
+          content_exam += '<tr><th>School</th><th>Subject</th><th>Task</th><th>Date</th><th>Delete</th><th>Edit</th></tr>';
+
+          console.log(val.length);
+
+          for(var i = 0; i < val.length; i++) {
+            content_exam += '<tr>';
+
+            content_exam += '<td><b>' + val[i].class_name + '</b><br>' + val[i].school_name + '</td>'
+            content_exam += '<td>' + val[i].subject_name + '</td>'
+            content_exam += '<td><b>' + val[i].exam_name + '</b><br>' + val[i].exam_description + '</td>'
+            content_exam += '<td>' + val[i].exam_due_date + '</td>';
+            content_exam += '<h4>' + val[i].description + '</h4>';
+
+            content_exam += '<td><img src="assets/img/x-button.png" style="width: 25px;"></img></td>'
+            content_exam += '<td><img src="assets/img/edit.png" style="width: 25px;"></img></td>'
+
+            content_exam += '</tr>';
+          }
+          content_exam += '</table>';
+
+          res.render('portal', {calendar_tbl: html, session: sess, content_homework: content_homework, content_exam: content_exam});
+        }
+      });
     }
   });
 
@@ -129,7 +165,47 @@ app.get('/', isLoggedIn, function(req, res){
 });
 
 app.get('/addhomework', isLoggedIn, function(req, res){
-  res.render('addhomework');
+  var sess = req.session
+
+  var sql_query = 'select su.name, su.id from tbl_subject su inner join tbl_class_subject cl_su on cl_su.fk_subject = su.id inner join tbl_class cl on cl.id = cl_su.fk_class inner join tbl_user_class us_cl on us_cl.fk_class = cl.id inner join tbl_user us on us.id = us_cl.fk_user where us.id = ' + sess.userid
+  db.executeRead(sql_query, function(val){
+    if (val !== 'undefined' && val !== null){
+      console.log('subjects for user result: ' + val)
+
+      var subjects = '<option value="">--Select--</option>'
+      for(var i = 0; i < val.length; i++) {
+        subjects += '<option value="' + var[i].id + '">' + var[i].name + '</option>'
+      }
+
+      res.render('addhomework', {errors: '', subjects: subjects});
+    }
+  });
+
+  res.render('addhomework', {errors: ''});
+});
+
+app.post('/addhomework', urlencodedParser, function(req, res){
+    var sess = req.session
+    console.log(querystring.escape(req.body.name))
+
+    if(req.body.subject && req.body.name && req.body.description && req.body.date){
+      //VARS
+      var subject = querystring.escape(req.body.subject);
+      var name = querystring.escape(req.body.name);
+      var description = querystring.escape(req.body.description);
+      var date = querystring.escape(req.body.date);
+
+      var sql_query = 'insert into tbl_homework(fk_subject, name, description, due_date) values(1, "'+ name +'", "' + description + '", "' + date + '")'
+
+      db.executeRead(sql_query, function(val){
+        console.log('insert result: ' + val)
+
+        res.render('addhomework', {errors: '<p class="label label-success error">Homework added to subject!</p>'});
+      });
+    } else {
+      //Not all Parameters Given / False
+      res.render('addhomework', {errors: '<p class="label label-danger error">Parameters missing!</p>'});
+    }
 });
 
 app.get('/addexam', isLoggedIn, function(req, res){

@@ -11,28 +11,34 @@
         <img src="assets/img/logo.png" class="logo" width="100px">
         <h1>Studynator</h1>
         <h2>Add Homework</h2>
+        <br>
+        <%- errors %>
       </div>
+
+      <form class="form-signin" method="POST">
       <div class="form-group">
-        <label for="subj">Name</label>
-        <select class="form-control" id="subj">
+        <label for="subject">Name</label>
+        <select class="form-control" id="subject" name="subject">
+          <%- subjects %>
           <option value="">--Select--</option>
           <option value="1">Maths</option>
           <option value="2">English</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="nme">Name</label>
-        <input type="text" class="form-control" id="nme">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" id="name" name="name" required autofocus>
       </div>
       <div class="form-group">
-        <label for="desc">Description</label>
-        <input type="text" class="form-control" id="desc">
+        <label for="description">Description</label>
+        <input type="text" class="form-control" id="description" name="description" required>
       </div>
       <div class="form-group">
-        <label for="dt">Due Date</label>
-        <input type="date" class="form-control" id="dt">
+        <label for="date">Due Date</label>
+        <input type="date" class="form-control" id="date" name="date" required>
       </div>
-
+      <button class="btn btn-primary" type="submit">Add Homework</button>
+    </form>
     </div>
 
   </body>
