@@ -49,7 +49,7 @@ function generateUICalendar(givenYear, givenMonth){
       if(!(day == 0)){
         if(countDays == 6 || countDays == 7){
           //Weekend
-          html += '<td class="clickable muted">' + day + '</td> '
+          html += '<td class="clickable muted" onclick="openDay(' + day + ');">' + day + '</td>'
         } else {
           //Work Day
           html += '<td class="clickable">' + day + '</td> '
@@ -167,24 +167,26 @@ app.get('/', isLoggedIn, function(req, res){
 app.get('/addhomework', isLoggedIn, function(req, res){
   var sess = req.session
 
+  //Get Subjects and return Page
   var sql_query = 'select su.name, su.id from tbl_subject su inner join tbl_class_subject cl_su on cl_su.fk_subject = su.id inner join tbl_class cl on cl.id = cl_su.fk_class inner join tbl_user_class us_cl on us_cl.fk_class = cl.id inner join tbl_user us on us.id = us_cl.fk_user where us.id = ' + sess.userid
   db.executeRead(sql_query, function(val){
     if (val !== 'undefined' && val !== null){
       console.log('subjects for user result: ' + val)
 
-      var subjects = '<option value="">--Select--</option>'
+      var subjects = '<option value="">- Select -</option>'
+
       for(var i = 0; i < val.length; i++) {
-        subjects += '<option value="' + var[i].id + '">' + var[i].name + '</option>'
+        subjects += '<option value="' + val[i].id + '">' + val[i].name + '</option>'
       }
 
       res.render('addhomework', {errors: '', subjects: subjects});
+    } else {
+      res.render('addhomework', {errors: '<p class="label label-danger error">You are in no class!</p>', subjects: subjects});
     }
   });
-
-  res.render('addhomework', {errors: ''});
 });
 
-app.post('/addhomework', urlencodedParser, function(req, res){
+app.post('/addhomework', isLoggedIn, urlencodedParser, function(req, res){
     var sess = req.session
     console.log(querystring.escape(req.body.name))
 
@@ -195,21 +197,61 @@ app.post('/addhomework', urlencodedParser, function(req, res){
       var description = querystring.escape(req.body.description);
       var date = querystring.escape(req.body.date);
 
-      var sql_query = 'insert into tbl_homework(fk_subject, name, description, due_date) values(1, "'+ name +'", "' + description + '", "' + date + '")'
+      var sql_query = 'insert into tbl_homework(fk_subject, name, description, due_date) values(' + subject + ', "'+ name +'", "' + description + '", "' + date + '")'
 
       db.executeRead(sql_query, function(val){
         console.log('insert result: ' + val)
 
-        res.render('addhomework', {errors: '<p class="label label-success error">Homework added to subject!</p>'});
+        res.render('addhomework', {errors: '<p class="label label-success error">Homework added to subject!</p>', subjects: ''});
       });
     } else {
       //Not all Parameters Given / False
-      res.render('addhomework', {errors: '<p class="label label-danger error">Parameters missing!</p>'});
+      res.render('addhomework', {errors: '<p class="label label-danger error">Parameters missing!</p>', subjects: ''});
     }
 });
 
 app.get('/addexam', isLoggedIn, function(req, res){
-  res.render('addexam');
+  var sess = req.session
+
+  //Get Subjects and return Page
+  var sql_query = 'select su.name, su.id from tbl_subject su inner join tbl_class_subject cl_su on cl_su.fk_subject = su.id inner join tbl_class cl on cl.id = cl_su.fk_class inner join tbl_user_class us_cl on us_cl.fk_class = cl.id inner join tbl_user us on us.id = us_cl.fk_user where us.id = ' + sess.userid
+  db.executeRead(sql_query, function(val){
+    if (val !== 'undefined' && val !== null){
+      console.log('subjects for user result: ' + val)
+
+      var subjects = '<option value="">- Select- </option>'
+
+      for(var i = 0; i < val.length; i++) {
+        subjects += '<option value="' + val[i].id + '">' + val[i].name + '</option>'
+      }
+
+      res.render('addexam', {errors: '', subjects: subjects});
+    } else {
+      res.render('addexam', {errors: '<p class="label label-danger error">You are in no class!</p>', subjects: subjects});
+    }
+  });
+});
+
+app.post('/addexam', isLoggedIn, urlencodedParser, function(req, res){
+  var sess = req.session
+  console.log(querystring.escape(req.body.name))
+
+  if(req.body.subject && req.body.name && req.body.description && req.body.date){
+    //VARS
+    var subject = querystring.escape(req.body.subject);
+    var name = querystring.escape(req.body.name);
+    var description = querystring.escape(req.body.description);
+    var date = querystring.escape(req.body.date);
+
+    var sql_query = 'insert into tbl_exams(fk_subject, name, description, due_date) values(' + subject + ', "'+ name +'", "' + description + '", "' + date + '")'
+
+    db.executeRead(sql_query, function(val){
+      res.render('addexam', {errors: '<p class="label label-success error">Exam added to subject!</p>', subjects: ''});
+    });
+  } else {
+    //Not all Parameters Given / False
+    res.render('addexam', {errors: '<p class="label label-danger error">Parameters missing!</p>', subjects: ''});
+  }
 });
 
 app.get('/calendar', isLoggedIn, function(req, res){
