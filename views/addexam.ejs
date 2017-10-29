@@ -39,6 +39,10 @@
     </div>
 
     <script>
+      $( ".selector" ).datepicker({
+        altFormat: "yyyy-mm-dd"
+      });
+
       if ( $('#date')[0].type != 'date' ) $('#date').datepicker();
     </script>
 

@@ -102,13 +102,13 @@ app.get('/', isLoggedIn, function(req, res){
   var html = generateUICalendar(2017, 10)
   var sess = req.session
 
-  var sql_query = 'select sc.name school_name, cl.name class_name, su.name subject_name, ho.name homework_name, ho.description homework_description, ho.due_date homework_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_homework ho on ho.fk_subject = su.id where us.id = ' + sess.userid + ' order by ho.due_date ';
+  var sql_query = 'select sc.name school_name, cl.name class_name, su.name subject_name, ho.name homework_name, ho.description homework_description, DATE_FORMAT(ho.due_date, "%a %D %b %Y") homework_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_homework ho on ho.fk_subject = su.id where us.id = ' + sess.userid + ' order by ho.due_date ';
 
   db.executeRead(sql_query, function(val){
 
     if (val !== 'undefined' && val !== null){
       var content_homework = '<table class="table-striped table-bordered">';
-      content_homework += '<tr><th>School</th><th>Subject</th><th>Task</th><th>Date</th><th>Delete</th><th>Edit</th></tr>';
+      content_homework += '<tr><th>Class</th><th>Subject</th><th>Task</th><th>Date</th><th>Delete</th><th>Edit</th></tr>';
 
       console.log(val.length);
 
@@ -128,14 +128,16 @@ app.get('/', isLoggedIn, function(req, res){
       }
       content_homework += '</table>';
 
+      content_homework = content_homework.replace('undefined', '')
+
       //part 2
-      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.name exam_name, ex.description exam_description, ex.due_date exam_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id where us.id = '+ sess.userid + ' order by ex.due_date';
+      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.name exam_name, ex.description exam_description, DATE_FORMAT(ex.due_date, "%a %D %b %Y") exam_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id where us.id = '+ sess.userid + ' order by ex.due_date';
 
       db.executeRead(sql_query2, function(val){
 
         if (val !== 'undefined' && val !== null){
           var content_exam = '<table class="table-striped table-bordered">';
-          content_exam += '<tr><th>School</th><th>Subject</th><th>Task</th><th>Date</th><th>Delete</th><th>Edit</th></tr>';
+          content_exam += '<tr><th>Class</th><th>Subject</th><th>Task</th><th>Date</th><th>Delete</th><th>Edit</th></tr>';
 
           console.log(val.length);
 
@@ -155,13 +157,35 @@ app.get('/', isLoggedIn, function(req, res){
           }
           content_exam += '</table>';
 
+          content_exam = content_exam.replace('undefined', '')
+
           res.render('portal', {calendar_tbl: html, session: sess, content_homework: content_homework, content_exam: content_exam});
         }
       });
     }
   });
+});
 
-  //res.render('portal', {calendar_tbl: html, session: sess});
+app.get('/profile', isLoggedIn, function(req, res){
+  var sess = req.session
+
+  //Get Subjects and return Page
+  var sql_query = 'select sc.name school_name, cl.name class_name from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_school sc on sc.id = cl.fk_school where us.id = ' + sess.userid
+  db.executeRead(sql_query, function(val){
+    if (val !== 'undefined' && val !== null){
+      var classes = ''
+
+      for(var i = 0; i < val.length; i++) {
+        classes += '<h4>' + val[i].school_name + '</h4><br>'
+        classes += '<div class="well">' + val[i].class_name + '</h3></div>'
+        classes += '<br>'
+      }
+
+      res.render('profile', {errors: '', session: sess, content_classes: classes});
+    } else {
+      res.render('profile', {errors: '<p class="label label-danger error">You are in no class!</p>', session: sess, content_classes: ''});
+    }
+  });
 });
 
 app.get('/addhomework', isLoggedIn, function(req, res){
@@ -193,9 +217,13 @@ app.post('/addhomework', isLoggedIn, urlencodedParser, function(req, res){
     if(req.body.subject && req.body.name && req.body.description && req.body.date){
       //VARS
       var subject = querystring.escape(req.body.subject);
-      var name = querystring.escape(req.body.name);
-      var description = querystring.escape(req.body.description);
-      var date = querystring.escape(req.body.date);
+      var name = req.body.name;
+      var description = req.body.description;
+      var date = req.body.date;
+
+      var day = date.substring(1, 2);
+      var month = date.substring(4, 5);
+      var year = date.substring(7, 10);
 
       var sql_query = 'insert into tbl_homework(fk_subject, name, description, due_date) values(' + subject + ', "'+ name +'", "' + description + '", "' + date + '")'
 
@@ -239,9 +267,15 @@ app.post('/addexam', isLoggedIn, urlencodedParser, function(req, res){
   if(req.body.subject && req.body.name && req.body.description && req.body.date){
     //VARS
     var subject = querystring.escape(req.body.subject);
-    var name = querystring.escape(req.body.name);
-    var description = querystring.escape(req.body.description);
-    var date = querystring.escape(req.body.date);
+    var name = req.body.name;
+    var description = req.body.description;
+    var date = req.body.date;
+
+    var day = date.substring(1, 2);
+    var month = date.substring(4, 5);
+    var year = date.substring(7, 10);
+
+    console.log('given date: ' + date + ' | new date: ' + day + '-' + month + '-' + year)
 
     var sql_query = 'insert into tbl_exams(fk_subject, name, description, due_date) values(' + subject + ', "'+ name +'", "' + description + '", "' + date + '")'
 
@@ -316,12 +350,12 @@ app.post('/signin', urlencodedParser, function(req, res){
 
   if(req.body.username && req.body.password){
     //VARS
-    var username = querystring.escape(req.body.username);
+    var email = req.body.username;
     var password = querystring.escape(req.body.password);
 
-    console.log('SQL INJ: ' + username);
+    console.log('User logged in: ' + email);
 
-    var sql_query = 'SELECT * FROM tbl_user WHERE username = "' + username + '"';
+    var sql_query = 'SELECT * FROM tbl_user WHERE email = "' + email + '"';
     db.executeRead(sql_query, function(val){
 
       if(val.length === 0){
@@ -333,7 +367,7 @@ app.post('/signin', urlencodedParser, function(req, res){
         if(val[0].password === password){
           sess.authenticated = true;
 
-          sess.username = val[0].username;
+          sess.username = val[0].email;
           sess.userid = val[0].id;
 
           //Create Cookie for later Access
@@ -363,8 +397,8 @@ app.post('/signup', urlencodedParser, function(req, res){
 
   if(req.body.username && req.body.password){
     //VARS
-    username = querystring.escape(req.body.username);
-    email = querystring.escape(req.body.email);
+    username = req.body.username;
+    email = req.body.email;
     password = querystring.escape(req.body.password);
     var password_repeat = querystring.escape(req.body.password_repeat);
 
@@ -376,10 +410,11 @@ app.post('/signup', urlencodedParser, function(req, res){
     }
 
     //E-Mail Check
+    /*
     if(validateEmail(email)){
-      msg += "- The e-mail address has an invalid format!"
-      sate = false
-    }
+      //msg += "- The e-mail address has an invalid format!"
+      state = false
+    }*/
 
     //Password Check
     if(password_repeat == password){
@@ -399,16 +434,25 @@ app.post('/signup', urlencodedParser, function(req, res){
       console.log(val);
       msg += 'Successfully registered! You can now log in.';
       var feedback = '<p class="label label-success error">' + msg + '<p>';
+
+      if(msg = ''){
+        feedback = '';
+      }
+
+      res.render('signup', {errors: feedback});
     });
   } else {
     var feedback = '<p class="label label-danger error">' + msg + '<p>';
+
+    if(msg = ''){
+      feedback = '';
+    }
+
+    res.render('signup', {errors: feedback});
   }
 
-  if(msg = ''){
-    feedback = '';
-  }
 
-  res.render('signup', {errors: feedback});
+
 });
 
 app.get('/logout', function(req, res){
