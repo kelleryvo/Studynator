@@ -17,7 +17,7 @@
 
         <div class="calendar-buttons">
           <button type="button" class="btn btn-primary" onclick="location.href = '/addhomework';">Add Homework</button>
-          <button type="button" class="btn btn-primary" onclick="location.href = '/addexam';">Add Exams</button>
+          <button type="button" class="btn btn-primary" onclick="location.href = '/addexam';">Add Exam</button>
         </div>
 
         <br>
@@ -35,6 +35,13 @@
 
         <br>
       </div>
+
+      <script>
+        function setPriority(exam_id){
+          //console.log('chosen day: ' + day);
+          window.location.href = '/addpriority/' + exam_id
+        }
+      </script>
 
   </body>
 

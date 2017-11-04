@@ -1,0 +1,29 @@
+<html>
+<% include partials/head.ejs %>
+
+  <body>
+    <% include partials/navigation.ejs %>
+
+      <div class='container'>
+        <div class="jumbotron">
+          <br>
+          <img src="/assets/img/logo.png" class="logo" width="100px">
+          <h1>Studynator</h1>
+          <h2>Set Priority</h2>
+          <br>
+          <%- errors %>
+        </div>
+
+        <form class="" method="POST">
+          <div class="form-group">
+            <label for="priority">Priority - Select a value between 1 and 5</label>
+            <input type="number" value="<%- priority_value %>" min="1" max="5" class="form-control" id="priority" name="priority" required>
+          </div>
+
+          <button class="btn btn-primary" type="submit">Set Priority</button>
+        </form>
+
+      </div>
+  </body>
+
+</html>
