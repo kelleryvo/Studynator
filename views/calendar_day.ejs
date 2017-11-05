@@ -11,7 +11,15 @@
           <h1>Studynator</h1>
         </div>
 
-      <%- calendar_tbl %>
+      <br>
+
+      <h3>Homework for <%- date %></h3>
+      <%- content_homework %>
+      <br>
+
+      <h3>Exams on <%- date %></h3>
+      <%- content_exam %>
+      <br>
 
       <br>
     </div>
@@ -24,6 +32,11 @@
         }
         var link = '/calendar/' + year.toString() + '/' + month.toString() + '/' + formatted_day.toString()
         window.location.href = link
+      }
+
+      function setPriority(exam_id){
+        //console.log('chosen day: ' + day);
+        window.location.href = '/addpriority/' + exam_id
       }
     </script>
 

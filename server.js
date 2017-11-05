@@ -50,11 +50,25 @@ function generateUICalendar(givenYear, givenMonth) {
       countDays++;
       if (!(day == 0)) {
         if (countDays == 6 || countDays == 7) {
-          //Weekend
-          html += '<td class="clickable muted" onclick="openDay(' + day + ');">' + day + '</td>'
+          //Weekends
+
+          //Format Day
+          var formatted_day = day.toString()
+          if(formatted_day.length == 1){
+            formatted_day = '0' + formatted_day
+          }
+
+          html += '<td class="clickable muted" onclick="openDay(' + givenYear + ', ' + givenMonth + ', ' + formatted_day + ');">' + day + '</td>'
         } else {
           //Work Day
-          html += '<td class="clickable">' + day + '</td> '
+
+          //Format Day
+          var formatted_day = day.toString()
+          if(formatted_day.length == 1){
+            formatted_day = '0' + formatted_day
+          }
+
+          html += '<td class="clickable" onclick="openDay(' + givenYear + ', ' + givenMonth + ', ' + formatted_day + ');">' + day + '</td>'
         }
       } else {
         html += '<td></td> '
@@ -134,7 +148,7 @@ app.get('/', isLoggedIn, function(req, res) {
       content_homework = content_homework.replace('undefined', '')
 
       //part 2
-      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.id exam_id, ex.name exam_name, ex.description exam_description, DATE_FORMAT(ex.due_date, "%a %D %b %Y") exam_due_date, pr.priority exam_priority from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id inner join tbl_priority pr on pr.fk_exam = ex.id where us.id = ' + sess.userid + ' order by ex.due_date';
+      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.id exam_id, ex.name exam_name, ex.description exam_description, DATE_FORMAT(ex.due_date, "%a %D %b %Y") exam_due_date, pr.priority exam_priority from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id left join tbl_priority pr on pr.fk_exam = ex.id where us.id = ' + sess.userid + ' order by ex.due_date';
 
       db.executeRead(sql_query2, function(val) {
 
@@ -222,20 +236,20 @@ function buildProfile(req, res, callback) {
                 classes += '<b>' + val2[j].name + '</b>   TEXT' + val2[j].username + '   ' + val2[j].email + '<br>'
               }
             }
-            callback(req, res, errors, sess, classes)
+            //callback(req, res, errors, sess, classes)
           });
           classes += '<br>'
         }
 
         //classes built
-
         console.log('rendered')
       }
     } else {
       errors += '<p class="label label-danger error">Database error occured!</p>'
     }
+    callback(req, res, errors, sess, classes)
   });
-  //  callback(req, res, errors, sess, classes)
+  //callback(req, res, errors, sess, classes)
 }
 
 app.get('/profile', isLoggedIn, function(req, res) {
@@ -373,13 +387,13 @@ app.post('/addexam', isLoggedIn, urlencodedParser, function(req, res) {
 });
 
 app.get('/addpriority/:exam', isLoggedIn, function(req, res) {
-  var sess = req.session
+  var sess = req.session;
   var priority;
   var exam_id = querystring.escape(req.params.exam);
 
   //Get Subjects and return Page
   var sql_query = 'select priority, planned_effort from tbl_priority where fk_exam = ' + exam_id + ' and fk_user = ' + sess.userid
-  console.log(sql_query)
+  console.log('query get: ' + sql_query)
   db.executeRead(sql_query, function(val) {
     if (val !== undefined && val !== null && val.length > 0) {
       priority = val[0].priority
@@ -397,34 +411,32 @@ app.get('/addpriority/:exam', isLoggedIn, function(req, res) {
   });
 });
 
-app.post('/addpriority/:id', isLoggedIn, function(req, res) {
-  var sess = req.session
+app.post('/addpriority/:exam', isLoggedIn, urlencodedParser, function(req, res) {
+  var sess = req.session;
   var priority = querystring.escape(req.body.priority);
-  var exam = querystring.escape(req.params.exam);
+  var exam_id = querystring.escape(req.params.exam);
 
   //Get Subjects and return Page
   var sql_query = 'select priority, planned_effort from tbl_priority where fk_exam = ' + exam_id + ' and fk_user = ' + sess.userid
-  console.log(sql_query)
+  console.log('query 1: ' + sql_query)
+
   db.executeRead(sql_query, function(val) {
     if (val !== undefined && val !== null && val.length > 0) {
-      priority = val[0].priority
-
+      //Update
       var sql_query2 = 'update tbl_priority set priority = ' + priority + ' where fk_exam = ' + exam_id + ' and fk_user = ' + sess.userid
+      console.log('query 2: ' + sql_query2)
       db.executeRead(sql_query2, function(val2) {
         //Redirect to Main site after updating value
         res.redirect('/')
       });
     } else {
-      var sql_query3 = 'INSERT INTO tbl_priority (fk_user, fk_exam, planned_effort, priority) VALUES (' + sess.userid + ', ' + exam + ', 0, ' + priority + ');'
+      //Insert
+      var sql_query3 = 'INSERT INTO tbl_priority (fk_user, fk_exam, planned_effort, priority) VALUES (' + sess.userid + ', ' + exam_id + ', 0, ' + priority + ');'
+      console.log('query 3: ' + sql_query3)
       db.executeRead(sql_query3, function(val3) {
         //Redirect to Main site after updating value
         res.redirect('/')
       });
-
-      /*res.render('addpriority', {
-        errors: '<p class="label label-danger error">No priority defined yet!</p>',
-        priority_value: 0
-      });*/
     }
   });
 });
@@ -453,9 +465,12 @@ app.get('/calendar', isLoggedIn, function(req, res) {
   });
 });
 
+
 app.get('/calendar/:year/:month', isLoggedIn, function(req, res) {
   var year = querystring.escape(req.params.year);
   var month = querystring.escape(req.params.month);
+
+  var sess = req.session;
 
   html = ''
 
@@ -483,6 +498,119 @@ app.get('/calendar/:year/:month', isLoggedIn, function(req, res) {
   res.render('calendar', {
     calendar_tbl: html
   });
+});
+
+
+app.get('/calendar/:year/:month/:day', isLoggedIn, function(req, res) {
+  var year = querystring.escape(req.params.year);
+  var month = querystring.escape(req.params.month);
+  var day = querystring.escape(req.params.day);
+
+  var sess = req.session;
+
+  html = ''
+
+  if (year !== 'undefined' && year !== null && month !== 'undefined' && month !== null && day !== 'undefined' && day !== null) {
+    //Check Length
+    if (year.length == 4 && (month.length == 2 ||  month.length == 1) && day.length == 2) {
+      //Check for Number
+      if (isNaN(year) == false && isNaN(month) == false && isNaN(day) == false) {
+        //Check Range
+        if (month >= 1 && month <= 12) {
+          console.log('date input ok (' + year + ' / ' + month + ' / ' + day + ')')
+
+          var formatted_date = year + '-' + month + '-' + day
+          var formatted_date_export = day + '.' + month + '.' + year
+
+          sql_query = 'select sc.name school_name, cl.name class_name, su.name subject_name, ho.name homework_name, ho.description homework_description, ho.due_date homework_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_homework ho on ho.fk_subject = su.id where us.id = ' + sess.userid + ' and ho.due_date = "' + formatted_date + '" order by ho.due_date'
+
+          db.executeRead(sql_query, function(val) {
+
+            if (val !== 'undefined' && val !== null) {
+              var content_homework = '<table class="table-striped table-bordered table-responsive">';
+              content_homework += '<tr><th>Class</th><th>Subject</th><th>Task</th></tr>';
+
+              console.log(val.length);
+
+              for (var i = 0; i < val.length; i++) {
+                content_homework += '<tr>';
+
+                content_homework += '<td><b>' + val[i].class_name + '</b><br>' + val[i].school_name + '</td>'
+                content_homework += '<td>' + val[i].subject_name + '</td>'
+                content_homework += '<td><b>' + val[i].homework_name + '</b><br>' + val[i].homework_description + '</td>'
+
+                content_homework += '</tr>';
+              }
+
+              content_homework += '</table>';
+
+              if(val.length == 0){
+                content_homework = 'No Homework for this day.'
+              }
+
+              //part 2
+              var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.id exam_id, ex.name exam_name, ex.description exam_description, ex.due_date exam_due_date, pr.priority exam_priority from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id left join tbl_priority pr on pr.fk_exam = ex.id where us.id = ' + sess.userid + ' and ex.due_date = "' + formatted_date + '" order by ex.due_date';
+
+              db.executeRead(sql_query2, function(val) {
+
+                if (val !== 'undefined' && val !== null) {
+                  var content_exam = '<table class="table-striped table-bordered table-responsive">';
+                  content_exam += '<tr><th>Class</th><th>Subject</th><th>Task</th><th>Priority</th></tr>';
+
+                  console.log(sql_query2);
+
+                  for (var i = 0; i < val.length; i++) {
+                    content_exam += '<tr>';
+
+                    content_exam += '<td><b>' + val[i].class_name + '</b><br>' + val[i].school_name + '</td>'
+                    content_exam += '<td>' + val[i].subject_name + '</td>'
+                    content_exam += '<td><b>' + val[i].exam_name + '</b><br>' + val[i].exam_description + '</td>'
+
+                    switch (val[i].exam_priority) {
+                      case 1:
+                        content_exam += '<td class="clickable prior1" onclick="setPriority(' + val[i].exam_id + ');"></td>'
+                        break;
+                      case 2:
+                        content_exam += '<td class="clickable prior2" onclick="setPriority(' + val[i].exam_id + ');"></td>'
+                        break;
+                      case 3:
+                        content_exam += '<td class="clickable prior3" onclick="setPriority(' + val[i].exam_id + ');"></td>'
+                        break;
+                      case 4:
+                        content_exam += '<td class="clickable prior4" onclick="setPriority(' + val[i].exam_id + ');"></td>'
+                        break;
+                      case 5:
+                        content_exam += '<td class="clickable prior5" onclick="setPriority(' + val[i].exam_id + ');"></td>'
+                        break;
+                      default:
+                      content_exam += '<td class="clickable" onclick="setPriority(' + val[i].exam_id + ');"></td>'
+                    }
+
+
+                    content_exam += '</tr>';
+                  }
+                  content_exam += '</table>';
+
+                  if(val.length == 0){
+                    content_exam = 'No Exams on this day.'
+                  }
+
+                  res.render('calendar_day', {
+                    content_homework: content_homework,
+                    content_exam: content_exam,
+                    date: formatted_date_export,
+                    session: sess
+                  });
+
+                }
+              });
+            }
+          });
+
+        }
+      }
+    }
+  }
 });
 
 app.get('/signin', function(req, res) {

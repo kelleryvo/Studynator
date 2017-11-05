@@ -1,5 +1,5 @@
 body{
-  font-size: 200%;
+  font-size: 180%;
 }
 
 table, th, td {
@@ -26,6 +26,8 @@ td{
   border-bottom: 1px solid #ddd;
 
   padding: 20px;
+
+  font-size: 14pt;
 }
 
 .clickable:hover {
@@ -41,21 +43,21 @@ td{
 }
 
 .prior1 {
-  background-color: #f44155
+  background-color: #CC3633;
 }
 
 .prior2 {
-  background-color: #c141f4
+  background-color: #CC7333;
 }
 
 .prior3 {
-  background-color: #41f4e5
+  background-color: #CCBF33;
 }
 
 .prior4 {
-  background-color: #41f447
+  background-color: #A1CC33;
 }
 
 .prior5 {
-  background-color: #d4f442
+  background-color: #33CC47;
 }
