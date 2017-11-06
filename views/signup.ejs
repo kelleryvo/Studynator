@@ -2,15 +2,21 @@
   <% include partials/head.ejs %>
   <body>
     <div class="container signin-container">
+      <div class="jumbotron">
+        <br>
+        <img src="assets/img/logo.png" class="logo" width="250px">
+        <h1>Studynator</h1>
+        <p>Your tool to boost learning results.</p>
+        <p><a href="/whatisthis" class="btn btn-primary btn-lg">Read more...</a></p>
+      </div>
 
       <form class="form-signin" method="POST">
         <h2 class="form-signin-heading">Sign up</h2>
         <br>
         <%- errors %>
         <br>
-        <br>
-        <label for="username" class="sr-only">Username</label>
-        <input type="text" id="username" name = "username" class="form-control btn-margin" placeholder="Username" required autofocus>
+        <label for="username" class="sr-only">Name</label>
+        <input type="text" id="username" name = "username" class="form-control btn-margin" placeholder="Name" required autofocus>
         <label for="username" class="sr-only">E-Mail</label>
         <input type="email" id="email" name = "email" class="form-control btn-margin" placeholder="E-Mail" required autofocus>
         <label for="password" class="sr-only">Password</label>

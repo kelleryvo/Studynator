@@ -120,7 +120,7 @@ app.get('/', isLoggedIn, function(req, res) {
   var html = generateUICalendar(2017, 10)
   var sess = req.session
 
-  var sql_query = 'select sc.name school_name, cl.name class_name, su.name subject_name, ho.name homework_name, ho.description homework_description, DATE_FORMAT(ho.due_date, "%a %D %b %Y") homework_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_homework ho on ho.fk_subject = su.id where us.id = ' + sess.userid + ' order by ho.due_date ';
+  var sql_query = 'select sc.name school_name, cl.name class_name, su.name subject_name, ho.name homework_name, ho.description homework_description, DATE_FORMAT(ho.due_date, "%a %D %b %Y") homework_due_date from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_homework ho on ho.fk_subject = su.id where us.id = ' + sess.userid + ' and (ho.due_date >= CURDATE()) order by ho.due_date ';
 
   db.executeRead(sql_query, function(val) {
 
@@ -148,7 +148,7 @@ app.get('/', isLoggedIn, function(req, res) {
       content_homework = content_homework.replace('undefined', '')
 
       //part 2
-      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.id exam_id, ex.name exam_name, ex.description exam_description, DATE_FORMAT(ex.due_date, "%a %D %b %Y") exam_due_date, pr.priority exam_priority from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id left join tbl_priority pr on pr.fk_exam = ex.id where us.id = ' + sess.userid + ' order by ex.due_date';
+      var sql_query2 = 'select sc.name school_name, cl.name class_name, su.name subject_name, ex.id exam_id, ex.name exam_name, ex.description exam_description, DATE_FORMAT(ex.due_date, "%a %D %b %Y") exam_due_date, pr.priority exam_priority from tbl_user us inner join tbl_user_class us_cl on us_cl.fk_user = us.id inner join tbl_class cl on cl.id = us_cl.fk_class inner join tbl_class_subject cl_su on cl.id = cl_su.fk_class inner join tbl_subject su on su.id = cl_su.fk_subject inner join tbl_school sc on sc.id = cl.fk_school inner join tbl_exams ex on ex.fk_subject = su.id left join tbl_priority pr on pr.fk_exam = ex.id where us.id = ' + sess.userid + ' and (ex.due_date >= CURDATE()) order by ex.due_date';
 
       db.executeRead(sql_query2, function(val) {
 
